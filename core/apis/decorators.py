@@ -1,5 +1,5 @@
 import json
-from flask import request
+from flask import request, jsonify
 from core.libs import assertions
 from functools import wraps
 
@@ -19,6 +19,22 @@ def accept_payload(func):
         return func(incoming_payload, *args, **kwargs)
     return wrapper
 
+def validate_payload(required_properties):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(incoming_payload, *args, **kwargs):
+            # Validate that all required properties are present and not None
+            missing_properties = [prop for prop in required_properties if prop not in incoming_payload or incoming_payload[prop] is None]
+
+            if missing_properties:
+                return jsonify({
+                    "error": "Bad request",
+                    "message": f"Missing or None properties: {', '.join(missing_properties)}"
+                }), 400
+
+            return func(incoming_payload, *args, **kwargs)
+        return wrapper
+    return decorator
 
 def authenticate_principal(func):
     @wraps(func)

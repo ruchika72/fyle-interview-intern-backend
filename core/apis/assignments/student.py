@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify
 from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
@@ -19,6 +19,7 @@ def list_assignments(p):
 
 @student_assignments_resources.route('/assignments', methods=['POST'], strict_slashes=False)
 @decorators.accept_payload
+@decorators.validate_payload(["content"])
 @decorators.authenticate_principal
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
