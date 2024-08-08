@@ -1,3 +1,24 @@
+import pytest
+from core import db
+from core.models.assignments import Assignment, AssignmentStateEnum
+
+@pytest.fixture(scope='module')
+def setup_module():
+    
+    db.session.query(Assignment).delete()
+    db.session.commit()
+
+    
+    assignment = Assignment(
+        id=2,
+        student_id=1,
+        teacher_id=None,
+        content='Test Assignment Content',
+        state=AssignmentStateEnum.DRAFT
+    )
+    db.session.add(assignment)
+    db.session.commit() 
+
 def test_get_assignments_student_1(client, h_student_1):
     response = client.get(
         '/student/assignments',
@@ -58,21 +79,37 @@ def test_post_assignment_student_1(client, h_student_1):
 
 
 def test_submit_assignment_student_1(client, h_student_1):
+    
+    response = client.post(
+        '/student/assignments',
+        headers=h_student_1,
+        json={
+            'content': 'Test Assignment Content'
+        }
+    )
+
+   
+    print("Initial setup response:", response.json)
+    
+    assignment_id = response.json['data']['id']
+    
     response = client.post(
         '/student/assignments/submit',
         headers=h_student_1,
         json={
-            'id': 2,
+            'id': assignment_id,
             'teacher_id': 2
-        })
-
+        }
+    )
+    
+    print("Submit response:", response.json)
+    
     assert response.status_code == 200
-
+    
     data = response.json['data']
     assert data['student_id'] == 1
     assert data['state'] == 'SUBMITTED'
     assert data['teacher_id'] == 2
-
 
 def test_assignment_resubmit_error(client, h_student_1):
     response = client.post(
@@ -81,7 +118,8 @@ def test_assignment_resubmit_error(client, h_student_1):
         json={
             'id': 2,
             'teacher_id': 2
-        })
+        }
+    )
     error_response = response.json
     assert response.status_code == 400
     assert error_response['error'] == 'FyleError'
