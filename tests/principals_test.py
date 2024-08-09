@@ -70,6 +70,3 @@ def test_get_teachers(client, h_principal):
     assert response.status_code == 200
 
     data = response.json['data']
-    print(data)
-    #for assignment in data:
-        #assert assignment['state'] in [AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED]

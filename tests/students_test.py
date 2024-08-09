@@ -88,9 +88,6 @@ def test_submit_assignment_student_1(client, h_student_1):
         }
     )
 
-   
-    print("Initial setup response:", response.json)
-    
     assignment_id = response.json['data']['id']
     
     response = client.post(
